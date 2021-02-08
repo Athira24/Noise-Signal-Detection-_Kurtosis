@@ -1,0 +1,86 @@
+clc 
+clear all
+close all
+ds=datastore('D:\Sensors and signal Processing\Geophone Sikkim data analysis\Dep 5. Geophone 10Hz. 26. Sept. 2019\21-9-2019.csv'); %Repository for collections of data that are too large to fit in memory. % please put you path name. 
+tt=tall(ds); % Tall array for the data stored in data store
+tt %for previewing the tall array
+Time=(tt.Time);
+Time=gather(Time);
+%V=5;xn=(((g11*V)/1023)-1.65);
+%%
+x=(tt. PilotDeployment_DepG5_Geophone_10Hz_8_X);
+x=gather(x);
+x=(((x*5)/1023)-1.65);
+y=(tt.PilotDeployment_DepG5_Geophone_10Hz_8_Y);
+y=gather(y);
+y=(((y*5)/1023)-1.65);
+z=(tt. PilotDeployment_DepG5_Geophone_10Hz_8_Z);
+z=gather(z);
+z=(((z*5)/1023)-1.65);
+subplot 311
+plot(Time,x,'r')
+title( 'Dep 5. Geophone 10Hz. 26. Sept. 2019')
+xlabel('Time');ylabel('Amplitude X');
+ylim([-2 2]);
+subplot 312
+plot(Time,y,'g')      
+xlabel('Time');ylabel('Amplitude Y');
+ylim([-2 2]);
+subplot 313
+plot(Time,z,'b')
+xlabel('Time');ylabel('Amplitude Z');
+ylim([-2 2]);
+
+% FFT of entire signal for the day.
+N = length(Time); % number of samples
+fs = 1070;
+fr=fft(y);% axis x, y, or z
+fr(1)=[];
+n=0:N-1;
+L = length(n)/2;
+figure
+plot(n(n<length(n)/2)*fs/(2*L),abs(fr(n<length(n)/2)));   %% fft ploting
+%% Time segmentation 
+Ts=Time(1:length(Time));
+xs=x(1:length(Time));                   % Change the axis accordingly 
+N = length(xs);                              % number of samples
+fs = 1070;
+fr=fft(xs);
+fr(1)=[];
+n=0:N-1;
+L = length(n)/2;
+figure
+subplot 211
+plot(Ts,xs);
+subplot 212
+plot(n(n<length(n)/2)*fs/(2*L),abs(fr(n<length(n)/2)));
+
+%% Compute the kurtosis for the entire interval
+
+K = kurtosis(y);
+
+%% Identifing the noises 
+if K <= 3
+    V = var(x) 
+      if V == 0.4                   %% ambient noise
+        disp('ambient noise')
+        else if V== 0.6             %% Light passenger
+                disp('light passenger')
+            else
+                  V>=1.9            %% Heavy armored personnel carrier
+                  
+                   disp('Heavy armored personnel carrier')
+            end
+      end
+else if K >= 5
+      V = var(x)
+      if V==2.5
+          disp('Person Walking')
+      else if V==3.4
+              disp('Jogging') 
+          end
+      end
+    end
+end
+    
+
